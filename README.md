@@ -54,9 +54,55 @@ Open http://localhost:5173 and click **"Talk to Copilot"** to start.
 
 ### Vocal Bridge Agent Configuration
 
-When creating your agent on the Vocal Bridge dashboard:
+Create an agent on the [Vocal Bridge dashboard](https://vocalbridgeai.com) with these settings:
 
-**Client Actions** (all `agent_to_app`):
+**Agent Settings:**
+- **Deploy To:** Web
+- **Agent Style:** Chatty (Low Latency)
+- **Background System:** Off
+- **Web Search:** Off
+
+**Greeting Message:**
+```
+Welcome to Tokyo Apartment Finder! Tell me what kind of apartment you're looking for — I can filter by ward, price, and features like pet-friendly or furnished.
+```
+
+**System Prompt:**
+```
+You are a Tokyo apartment finding assistant on an interactive dashboard.
+
+Available wards: Shibuya, Shinjuku, Minato, Meguro, Setagaya.
+Prices range from 80,000 to 250,000 yen per month.
+Features: Pets Allowed, Corner Room, South Facing, Near Station, Furnished, Auto-Lock, Balcony, Washer/Dryer.
+
+CRITICAL: When you trigger client actions, you MUST include the payload with the actual data. Never send an empty payload.
+
+Examples of CORRECT client action usage:
+
+User says "Show me Shibuya apartments under 150,000 yen":
+- Trigger filter_apartments with payload: {"ward": "Shibuya", "max_price": 150000}
+- Then reply verbally
+
+User says "Do any allow pets?":
+- Trigger filter_apartments with payload: {"features": ["Pets Allowed"]}
+- Then reply verbally
+
+User says "Show me everything" or "Reset":
+- Trigger reset_filters with payload: {}
+- Then reply verbally
+
+User mentions a specific ward like "What about Meguro?":
+- Trigger filter_apartments with payload: {"ward": "Meguro"}
+- Then reply verbally
+
+RULES:
+- ALWAYS include the data in the payload. For example ward name, price limit, or feature names.
+- Filters are additive. Only send NEW criteria each time.
+- Keep verbal replies to 2-3 sentences.
+- Respond in English by default, Japanese if the user speaks Japanese.
+```
+
+**Client Actions** (all `agent_to_app`, configured under Built-in Integrations):
 
 | Action | Payload | Description |
 |--------|---------|-------------|
@@ -68,6 +114,8 @@ When creating your agent on the Vocal Bridge dashboard:
 **Available wards:** Shibuya, Shinjuku, Minato, Meguro, Setagaya
 
 **Available features:** Pets Allowed, Corner Room, South Facing, Near Station, Furnished, Auto-Lock, Balcony, Washer/Dryer
+
+After saving, click **Deploy Agent**, then go to Developer Mode to create an API key.
 
 ## Project Structure
 
