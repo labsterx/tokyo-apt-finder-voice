@@ -23,7 +23,10 @@ app.get('/api/voice-token', async (req, res) => {
         'X-API-Key': VOCAL_BRIDGE_API_KEY,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ participant_name: 'Apartment Seeker' }),
+      body: JSON.stringify({
+        participant_name: 'Apartment Seeker',
+        session_id: `demo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      }),
     });
 
     if (!response.ok) {
