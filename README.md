@@ -1,73 +1,96 @@
-# React + TypeScript + Vite
+# Tokyo Apartment Finder — Voice-Controlled Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A voice-powered Tokyo apartment search dashboard built for the **DeepLearning.AI Builder Night Tokyo** hackathon. Instead of clicking filters, users speak naturally to find apartments — the map zooms and listings update in real-time.
 
-Currently, two official plugins are available:
+## Demo Flow
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Open the dashboard showing 20 apartment listings across 5 Tokyo wards
+2. Click **"Talk to Copilot"** — the voice agent connects
+3. Say: *"Show me apartments in Shibuya under 150,000 yen"* — the map zooms to Shibuya, listings filter down
+4. Say: *"Do any allow pets?"* — filters further to pet-friendly apartments
+5. Say: *"Show me everything again"* — resets all filters
 
-## React Compiler
+## How It Works
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+User speaks → VocalBridge Agent (cloud) → triggers client action
+  → LiveKit data channel → React app handles action → UI updates instantly
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The voice agent uses [Vocal Bridge](https://vocalbridgeai.com) **Client Actions** to send structured commands (`filter_apartments`, `zoom_to_ward`, `reset_filters`) over LiveKit's data channel. The React app listens for these events and updates filters, map position, and listings in real-time.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Tech Stack
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Frontend:** React + Vite + TypeScript + Tailwind CSS 4
+- **Map:** Leaflet + OpenStreetMap (no API key needed)
+- **Voice:** Vocal Bridge (LiveKit SDK)
+- **Backend:** Express (token proxy)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- A [Vocal Bridge](https://vocalbridgeai.com) account with a deployed agent
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Copy env file and add your Vocal Bridge API key
+cp .env.example .env
+# Edit .env and set VOICE_BRIDGE_API_KEY=vb_your_key_here
+
+# Start the token server (runs on :3001)
+node server/index.js
+
+# Start the dev server (runs on :5173)
+npm run dev
 ```
+
+Open http://localhost:5173 and click **"Talk to Copilot"** to start.
+
+### Vocal Bridge Agent Configuration
+
+When creating your agent on the Vocal Bridge dashboard:
+
+**Client Actions** (all `agent_to_app`):
+
+| Action | Payload | Description |
+|--------|---------|-------------|
+| `filter_apartments` | `{ward?, max_price?, features?[]}` | Filter listings |
+| `zoom_to_ward` | `{ward}` | Zoom map to a ward |
+| `highlight_apartment` | `{apartment_id}` | Highlight a listing |
+| `reset_filters` | `{}` | Clear all filters |
+
+**Available wards:** Shibuya, Shinjuku, Minato, Meguro, Setagaya
+
+**Available features:** Pets Allowed, Corner Room, South Facing, Near Station, Furnished, Auto-Lock, Balcony, Washer/Dryer
+
+## Project Structure
+
+```
+├── server/index.js              # Express token proxy
+├── src/
+│   ├── App.tsx                  # Main layout
+│   ├── types.ts                 # Shared types
+│   ├── data/apartments.ts       # 20 mock apartments
+│   ├── hooks/
+│   │   ├── useVoiceAgent.ts     # LiveKit + client action handling
+│   │   └── useApartmentFilters.ts # Filter state machine
+│   ├── components/
+│   │   ├── ApartmentCard.tsx    # Listing card
+│   │   ├── ApartmentGrid.tsx    # Card grid
+│   │   ├── TokyoMap.tsx         # Leaflet map with animated zoom
+│   │   ├── VoiceCopilot.tsx     # Mic button + transcript panel
+│   │   └── FilterBar.tsx        # Active filter pills
+│   └── utils/
+│       └── wardCoordinates.ts   # Ward lat/lng coordinates
+└── .env.example                 # Required env vars
+```
+
+## License
+
+MIT
